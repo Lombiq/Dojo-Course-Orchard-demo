@@ -1,0 +1,9 @@
+@{
+    Orchard.ContentManagement.ContentItem contentItem = Model.ContentPart.ContentItem;
+    string title = Model.Title.ToString();
+    Model.DynamicTest = "This is a dynamic test.";
+}
+
+@Model.DynamicTest
+
+<h1>@Html.ItemDisplayLink(title, contentItem)</h1>

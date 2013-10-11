@@ -1,0 +1,12 @@
+﻿Name: Dojo Course Module
+AntiForgery: enabled
+Author: The Dojo Course Team
+Website: http://orcharddojo.net
+Version: 1.0
+OrchardVersion: 1.7
+Description: Description for the module
+Features:
+    DojoCourse.Module:
+		Name: Dojo Course Module
+        Description: Description for feature DojoCourse.Module.
+		Category: Demo
