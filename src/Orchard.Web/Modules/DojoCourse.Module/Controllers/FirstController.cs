@@ -11,20 +11,8 @@ namespace DojoCourse.Module.Controllers
     [Themed]
     public class FirstController : Controller
     {
-        private IWorkContextAccessor _wca;
-
-
-        public FirstController(IWorkContextAccessor wca)
+        public ViewResult Index(string userName)
         {
-            _wca = wca;
-        }
-
-
-        public ViewResult Index()
-        {
-            var workContext = _wca.GetContext();
-            var siteName = workContext.CurrentSite.SiteName;
-
             return View();
         }
     }
