@@ -84,8 +84,12 @@
   <ItemGroup>
     <Compile Include="Controllers\DependencyInjectionController.cs" />
     <Compile Include="Controllers\FirstController.cs" />
-    <Compile Include="Migration.cs" />
+    <Compile Include="Controllers\PersonController.cs" />
+    <Compile Include="Migrations.cs" />
+    <Compile Include="Models\PersonListPart.cs" />
     <Compile Include="Models\PersonRecord.cs" />
+    <Compile Include="Services\PersonFilters.cs" />
+    <Compile Include="Services\PersonManager.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

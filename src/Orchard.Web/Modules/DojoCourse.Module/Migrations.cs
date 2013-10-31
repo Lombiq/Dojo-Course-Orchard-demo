@@ -7,7 +7,7 @@ using System.Web;
 
 namespace DojoCourse.Module
 {
-    public class Migration : DataMigrationImpl
+    public class Migrations : DataMigrationImpl
     {
         public int Create()
         {
