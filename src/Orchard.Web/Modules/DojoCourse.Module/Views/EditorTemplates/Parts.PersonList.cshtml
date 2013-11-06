@@ -1,0 +1,11 @@
+﻿@model DojoCourse.Module.Models.PersonListPart
+
+<fieldset>
+    <legend>@T("Person List Settings")</legend>
+    <ol>
+        <li>
+            @Html.LabelFor(m => m.MaxCount, T("Maximal count"))
+            @Html.TextBoxFor(m => m.MaxCount, new { @class = "text small" })
+        </li>
+    </ol>
+</fieldset>

@@ -1,4 +1,5 @@
 ﻿using Orchard.ContentManagement;
+using Orchard.ContentManagement.FieldStorage.InfosetStorage;
 using Orchard.ContentManagement.Records;
 using Orchard.Environment.Extensions;
 using System;
@@ -13,8 +14,17 @@ namespace DojoCourse.Module.Models
     {
         public int MaxCount
         {
-            get { return Record.MaxCount; }
-            set { Record.MaxCount = value; }
+            get
+            {
+                var infosetValue = this.As<InfosetPart>().Get("PersonListPart", "MaxCount");
+                if (infosetValue == null) return 0;
+                return int.Parse(infosetValue);
+            }
+            set
+            {
+                this.As<InfosetPart>().Set("PersonListPart", "MaxCount", value.ToString());
+                Record.MaxCount = value;
+            }
         }
     }
 

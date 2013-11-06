@@ -82,18 +82,31 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContentMigrations.cs" />
     <Compile Include="Controllers\DependencyInjectionController.cs" />
     <Compile Include="Controllers\FirstController.cs" />
     <Compile Include="Controllers\PersonController.cs" />
+    <Compile Include="Drivers\PersonListPartDriver.cs" />
+    <Compile Include="Handlers\PersonListPartHandler.cs" />
     <Compile Include="Migrations.cs" />
     <Compile Include="Models\PersonListPart.cs" />
     <Compile Include="Models\PersonRecord.cs" />
     <Compile Include="Services\PersonFilters.cs" />
     <Compile Include="Services\PersonManager.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Views\Parts\PersonList.cshtml" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Views\First\Index.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\EditorTemplates\Parts.PersonList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Placement.info">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

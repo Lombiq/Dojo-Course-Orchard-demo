@@ -1,0 +1,6 @@
+﻿<Placement>
+  <Match DisplayType="Detail">
+    <Place Parts_PersonList="Content:10"/>
+  </Match>
+  <Place Parts_PersonList_Edit="Content:10"/>
+</Placement>
