@@ -1,6 +1,7 @@
 ﻿using Orchard.ContentManagement;
 using Orchard.ContentManagement.FieldStorage.InfosetStorage;
 using Orchard.ContentManagement.Records;
+using Orchard.Core.Common.Utilities;
 using Orchard.Environment.Extensions;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,13 @@ namespace DojoCourse.Module.Models
                 this.As<InfosetPart>().Set("PersonListPart", "MaxCount", value.ToString());
                 Record.MaxCount = value;
             }
+        }
+
+        internal readonly LazyField<IEnumerable<PersonRecord>> _persons = new LazyField<IEnumerable<PersonRecord>>();
+        public LazyField<IEnumerable<PersonRecord>> PersonsField { get { return _persons; } }
+        public IEnumerable<PersonRecord> Persons
+        {
+            get { return _persons.Value; }
         }
     }
 

@@ -10,6 +10,7 @@ Features:
 		Name: Dojo Course Module
         Description: Description for feature DojoCourse.Module.
 		Category: Demo
+		Dependencies: Orchard.jQuery
     DojoCourse.Module.Contents:
 		Name: Dojo Course Module - Contents
         Description: Description for feature DojoCourse.Module.

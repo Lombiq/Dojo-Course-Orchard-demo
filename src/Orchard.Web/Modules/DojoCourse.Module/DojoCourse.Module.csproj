@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContentMigrations.cs" />
+    <Compile Include="Controllers\ContentsAdminController.cs" />
     <Compile Include="Controllers\DependencyInjectionController.cs" />
     <Compile Include="Controllers\FirstController.cs" />
     <Compile Include="Controllers\PersonController.cs" />
@@ -91,6 +92,8 @@
     <Compile Include="Migrations.cs" />
     <Compile Include="Models\PersonListPart.cs" />
     <Compile Include="Models\PersonRecord.cs" />
+    <Compile Include="Permissions.cs" />
+    <Compile Include="ResourceManifest.cs" />
     <Compile Include="Services\PersonFilters.cs" />
     <Compile Include="Services\PersonManager.cs" />
   </ItemGroup>
@@ -107,6 +110,9 @@
     <Content Include="Placement.info">
       <SubType>Designer</SubType>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Views\DojoCourse.PersonListDashboard.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
