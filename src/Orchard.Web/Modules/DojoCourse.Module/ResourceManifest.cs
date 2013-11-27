@@ -21,10 +21,10 @@ namespace DojoCourse.Module
                 .SetUrl("dojocourse-module-other.css")
                 .SetDependencies("DojoCourse.Module.Dependency");
 
-            manifest
-                .DefineScript("DojoCourse.Module.Filtered")
-                .SetUrl("dojocourse-module-filtered")
-                .SetDependencies("jQuery");
+            //manifest
+            //    .DefineScript("DojoCourse.Module.Filtered")
+            //    .SetUrl("dojocourse-module-filtered")
+            //    .SetDependencies("jQuery");
         }
     }
 }

@@ -1,1 +1,19 @@
-﻿
+﻿@{
+    Style.Require("DojoCourse.Module.Other");
+    Script.Include("http://code.jquery.com/jquery-1.8.3.min.js").AtFoot();
+}
+
+<h1>@Html.TitleForPage(T("Person List Dashboard").Text)</h1>
+
+@Html.Link(T("Create new person list").Text, Url.Action("PersonListDashboard", new { id = 0 }))
+
+@Display(New.AdHocExample(Name: WorkContext.CurrentUser.UserName))
+
+<h2>@("Edit Person List")</h2>
+
+@Html.ValidationSummary(T("The Person List could not be edited.").Text)
+
+@using (Html.BeginFormAntiForgeryPost())
+{
+    @Display(Model.EditorShape())
+}
