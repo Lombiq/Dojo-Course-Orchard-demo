@@ -1,5 +1,8 @@
-﻿using Orchard;
+﻿using DojoCourse.Module.Models;
+using Orchard;
 using Orchard.ContentManagement;
+using Orchard.ContentManagement.Aspects;
+using Orchard.Core.Title.Models;
 using Orchard.Data;
 using Orchard.Environment.Extensions;
 using Orchard.Localization;
@@ -25,12 +28,12 @@ namespace DojoCourse.Module.Controllers
 
         public Localizer T { get; set; }
 
-        public ContentsAdminController(IOrchardServices orchardServices, ITransactionManager transactionManager)
+        public ContentsAdminController(IOrchardServices orchardServices)
         {
             _orchardServices = orchardServices;
             _authorizer = orchardServices.Authorizer;
             _contentManager = orchardServices.ContentManager;
-            _transactionManager = transactionManager;
+            _transactionManager = orchardServices.TransactionManager;
 
             T = NullLocalizer.Instance;
         }
@@ -58,15 +61,26 @@ namespace DojoCourse.Module.Controllers
             var editorShape = _contentManager.UpdateEditor(item, this);
 
             if (!ModelState.IsValid)
-	        {
-		        _transactionManager.Cancel();
+            {
+                _transactionManager.Cancel();
 
                 return PersonListDashboardShapeResult(item);
-	        }
+            }
 
             _orchardServices.Notifier.Add(Orchard.UI.Notify.NotifyType.Information, T("Person List successfully saved."));
 
-            return RedirectToAction("PersonListDashboard");
+            return RedirectToAction("PersonListDashboard", new { Id = item.Id });
+        }
+
+        public string PersonListQuery()
+        {
+            var personLists = _contentManager
+                .Query(VersionOptions.Latest, "PersonList")
+                .OrderBy<TitlePartRecord>(record => record.Title)
+                .Where<PersonListPartRecord>(record => record.MaxCount > 10)
+                .List();
+
+            return string.Join(", ", personLists.Select(personList => personList.As<ITitleAspect>().Title));
         }
 
 

@@ -35,7 +35,7 @@ namespace DojoCourse.Module.Drivers
         protected override DriverResult Editor(PersonListPart part, IUpdateModel updater, dynamic shapeHelper)
         {
             updater.TryUpdateModel(part, Prefix, null, null);
-            return Editor(part, updater, shapeHelper);
+            return Editor(part, shapeHelper);
         }
 
         protected override void Exporting(PersonListPart part, ExportContentContext context)

@@ -85,19 +85,25 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdminMenu.cs" />
     <Compile Include="ContentMigrations.cs" />
     <Compile Include="Controllers\ContentsAdminController.cs" />
     <Compile Include="Controllers\DependencyInjectionController.cs" />
     <Compile Include="Controllers\FileManagementController.cs" />
     <Compile Include="Controllers\FirstController.cs" />
     <Compile Include="Controllers\PersonController.cs" />
+    <Compile Include="DecoupledEventHandler\DecoupledEventHandler.cs" />
     <Compile Include="Drivers\PersonListPartDriver.cs" />
+    <Compile Include="EventHandlers\BackgroundEventHandler1.cs" />
+    <Compile Include="EventHandlers\BackgroundEventHandler2.cs" />
+    <Compile Include="EventHandlers\IBackgroundEventHandler.cs" />
     <Compile Include="Handlers\PersonListPartHandler.cs" />
     <Compile Include="Migrations.cs" />
     <Compile Include="Models\PersonListPart.cs" />
     <Compile Include="Models\PersonRecord.cs" />
     <Compile Include="Permissions.cs" />
     <Compile Include="ResourceManifest.cs" />
+    <Compile Include="Services\BackgroundTask.cs" />
     <Compile Include="Services\PersonFilters.cs" />
     <Compile Include="Services\PersonManager.cs" />
   </ItemGroup>
