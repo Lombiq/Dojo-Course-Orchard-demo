@@ -1,0 +1,17 @@
+﻿@{
+    Script.Require("jQuery").AtFoot(); // This should be included by the FacebookSuite script already, but just in case.
+}
+
+<div id="fb-root">
+</div>
+
+@using (Script.Foot())
+{
+    <script type="text/javascript">
+        (function ($) {
+            $(function () {
+                $.facebookSuite.initialize("@Model.AppId", "@Model.Culture");
+            });
+        })(jQuery);
+    </script>
+}
