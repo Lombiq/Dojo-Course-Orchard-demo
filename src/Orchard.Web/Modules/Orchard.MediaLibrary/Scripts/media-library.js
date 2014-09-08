@@ -1,5 +1,24 @@
-﻿$(function () {
+﻿var enhanceViewModel = function(viewModel) {
+    // extension point for other modules to alter the view model
+};
+
+var baseViewModel = function() {
+
+};
+
+$(function () {
     (function (settings) {
+
+        var listWidth = $('#media-library-main-list').width();
+        var listHeight = $('#media-library-main-list').height();
+        var itemSize = $('.thumbnail').first().width();
+        var draftText = $("#media-library").data("draft-text");
+
+        var itemsPerRow = Math.floor(listWidth / itemSize);
+        var itemsPerColumn = Math.ceil(listHeight / itemSize);
+
+        var pageCount = itemsPerRow * itemsPerColumn;
+
         function mediaPartViewModel(data) {
             var self = this;
 
@@ -35,6 +54,10 @@
                 return css;
             });
 
+            self.publicationStatus = ko.computed(function() {
+                return self.data.published ? "" : draftText;
+            });
+
             // operations
             self.setData = function(value) {
                 self.data = value;
@@ -44,31 +67,64 @@
         function mediaIndexViewModel() {
             var self = this;
 
+            // placeholder function called to retrieve content when scrolling
+            self.loadMediaItemsUrl = function (folderPath, skip, count, order, mediaType) {
+            };
+
             // values
             self.selection = ko.observableArray([]);
             self.focus = ko.observable();
             self.results = ko.observableArray();
             self.displayed = ko.observable();
-            self.pendingRequest = ko.observable(false);
             self.mediaItemsCount = 0;
             self.orderMedia = ko.observableArray(['created']);
             self.mediaType = ko.observableArray([]);
 
-            self.getMediaItems = function(folderPath, max) {
-                if (self.pendingRequest()) {
+            self.mediaFolders = ko.observableArray([]);
+            self.mediaFoldersRequestCount = ko.observable(0);
+            self.mediaFoldersPendingRequest = ko.computed({
+                read: function () {
+                    return (self.mediaFoldersRequestCount() > 0);
+                },
+                write: function (value) {
+                    if (value === true) {
+                        self.mediaFoldersRequestCount(self.mediaFoldersRequestCount() + 1);
+                    } else if (value === false) {
+                        self.mediaFoldersRequestCount(self.mediaFoldersRequestCount() - 1);
+                    }
+                }
+            });
+
+            self.mediaPendingRequest = ko.observable(false);
+            self.pendingRequest = ko.computed({
+                read: function () {
+                    return (self.mediaFoldersPendingRequest() || self.mediaPendingRequest());
+                },
+                write: function (value) {
+                    self.mediaPendingRequest(value);
+                }
+            });
+
+            self.getMediaItems = function (count, append) {
+                var folderPath = self.displayed() || '';
+                
+                if (self.mediaPendingRequest()) {
                     return;
                 }
 
-                if (self.results().length > 0 && self.results().length >= self.mediaItemsCount) {
-                    return;
+                if (append) {
+                    if (self.results().length > 0 && self.results().length >= self.mediaItemsCount) {
+                        return;
+                    }
+                } else {
+                    self.results([]);
                 }
 
                 self.pendingRequest(true);
 
-                var url = folderPath
-                    ? settings.mediaItemsActionUrl + '?folderPath=' + encodeURIComponent(folderPath) + '&skip=' + self.results().length + '&count=' + max + '&order=' + self.orderMedia() + '&mediaType=' + self.mediaType()
-                    : settings.recentMediaItemsActionUrl + '?skip=' + self.results().length + '&count=' + max + '&order=' + self.orderMedia() + '&mediaType=' + self.mediaType();
-
+                var url = self.loadMediaItemsUrl(folderPath, self.results().length, count, self.orderMedia(), self.mediaType());
+                console.log(url);
+                
                 $.ajax({
                     type: "GET",
                     url: url,
@@ -123,6 +179,7 @@
                         $.ajax({
                             type: "GET",
                             url: url,
+                            cache: false
                         }).done(function(data) {
                             newValue.summary(data);
                         });
@@ -131,14 +188,17 @@
             });
 
             self.displayFolder = function(folderPath) {
-
                 self.results([]);
-
-                self.getMediaItems(folderPath, 20);
                 self.displayed(folderPath);
+
+                self.loadMediaItemsUrl = function (f, skip, count, order, mediaType) {
+                    return settings.mediaItemsActionUrl + '?folderPath=' + encodeURIComponent(f) + '&skip=' + skip + '&count=' + count + '&order=' + order + '&mediaType=' + mediaType;
+                };
+                
+                self.getMediaItems(pageCount);
             };
 
-            self.selectFolder = function(folderPath) {
+            self.selectFolder = function (folderPath) {
                 History.pushState({ action: 'displayFolder', folderPath: folderPath }, '', '?folderPath=' + folderPath);
                 self.displayFolder(folderPath);
             };
@@ -146,46 +206,13 @@
             self.selectRecent = function() {
                 History.pushState({ action: 'selectRecent' }, '', '?recent');
 
+                self.loadMediaItemsUrl = function (folderPath, skip, count, order, mediaType) {
+                    return settings.recentMediaItemsActionUrl + '?skip=' + skip + '&count=' + count + '&order=' + order + '&mediaType=' + mediaType;
+                };
+                
                 self.results([]);
                 self.displayed(null);
-                var max = 20;
-
-                if (self.pendingRequest()) {
-                    return;
-                }
-
-                if (self.results().length > 0 && self.results().length >= self.mediaItemsCount) {
-                    console.log('no more content, mediaItemsCount: ' + self.mediaItemsCount);
-                    return;
-                }
-
-                self.pendingRequest(true);
-
-                var url = settings.recentMediaItemsActionUrl + '?skip=' + self.results().length + '&count=' + max + '&order=' + self.orderMedia() + '&mediaType=' + self.mediaType();
-
-                $.ajax({
-                    type: "GET",
-                    url: url,
-                }).done(function(data) {
-                    var mediaItems = data.mediaItems;
-                    self.mediaItemsCount = data.mediaItemsCount;
-                    for (var i = 0; i < mediaItems.length; i++) {
-                        var item = new mediaPartViewModel(mediaItems[i]);
-                        self.results.push(item);
-
-                        // pre-select result which are already part of the selection
-                        var selection = self.selection();
-                        for (var j = 0; j < selection.length; j++) {
-                            if (selection[j].data.id == item.data.id) {
-                                viewModel.toggleSelect(item, true);
-                            }
-                        }
-                    }
-                }).fail(function(data) {
-                    console.error(data);
-                }).always(function() {
-                    self.pendingRequest(false);
-                });
+                self.getMediaItems(pageCount);
             };
 
             self.toggleSelect = function(searchResult, force) {
@@ -216,12 +243,7 @@
             self.scrolled = function(data, event) {
                 var elem = event.target;
                 if (elem.scrollTop > (elem.scrollHeight - elem.offsetHeight - 300)) {
-                    if (self.displayed()) {
-                        self.getMediaItems(self.displayed(), 20);
-                    } else {
-                        self.getMediaItems(null, 20);
-                    }
-
+                    self.getMediaItems(pageCount, true);
                 }
             };
 
@@ -239,9 +261,125 @@
             };
             self.orderMedia.subscribe(selectFolderOrRecent);
             self.mediaType.subscribe(selectFolderOrRecent);
+
+            self.fetchDisplayedFolderStructure = function(displayedFolder) {
+                var folders = self.mediaFolders();
+                for (var x = 0; x < folders.length; x++) {
+                    var folder = folders[x];
+                    if (displayedFolder.indexOf(folder.folderPath()) === 0) {
+                        folder.fetchChildren(displayedFolder);
+                        folder.isExpanded(true);
+                    }
+                }
+            };
         }
 
         var viewModel = new mediaIndexViewModel();
+
+        function mediaFolderViewModel(data) {
+            var self = this;
+
+            self.mediaIndexViewModel = viewModel;
+
+            self.folderPath = ko.observable(data.folderPath);
+
+            self.name = ko.observable(data.name);
+
+            self.childFolders = ko.observableArray([]);
+
+            self.childFoldersFetchStatus = 0;  //0 = unfetched, 1 = fetching, 2 = fetched
+
+            self.isExpanded = ko.observable(false);
+            self.isVisible = ko.observable(true);
+
+            self.isSelected = ko.computed(function() {
+                return (self.mediaIndexViewModel.displayed() == self.folderPath());
+            });
+
+            self.fetchChildren = function (deepestChildPath) {
+                self.childFoldersFetchStatus = 1;
+                
+                var getChildFolderListUrl = function (f) {
+                    return settings.childFolderListingActionUrl + '?folderPath=' + encodeURIComponent(f);
+                };
+                var url = getChildFolderListUrl(self.folderPath());
+
+                self.mediaIndexViewModel.mediaFoldersPendingRequest(true);
+
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    cache: false
+                }).done(function (data) {
+                    var newChildFolders = data.childFolders;
+
+                    var nextFetch = self.folderPath();
+
+                    if (deepestChildPath !== undefined && deepestChildPath !== null && (deepestChildPath.indexOf(self.folderPath()) === 0)) {
+                        var deepestChildPathBreadCrumbs = deepestChildPath.split('\\');
+                        var currentBreadCrumbs = self.folderPath().split('\\');
+
+                        var diff = deepestChildPathBreadCrumbs.length - currentBreadCrumbs.length;
+                        if (diff > 0) {
+                            nextFetch = self.folderPath() + '\\' + deepestChildPathBreadCrumbs[deepestChildPathBreadCrumbs.length - diff];
+                        }
+                    }
+
+                    for (var y = 0; y < newChildFolders.length; y++) {
+                        var newChildFolder = new mediaFolderViewModel(newChildFolders[y]);
+                        if (newChildFolder.folderPath() === nextFetch) {
+                            newChildFolder.fetchChildren(deepestChildPath);
+                            newChildFolder.isExpanded(true);
+                        }
+                        newChildFolder.isVisible(true);
+                        self.childFolders.push(newChildFolder);
+                    }
+
+                    self.childFoldersFetchStatus = 2;
+                }).fail(function (data) {
+                    console.error(data);
+                    self.childFoldersFetchStatus = 0;
+                }).always(function () {
+                    self.mediaIndexViewModel.mediaFoldersPendingRequest(false);
+                });
+            };
+
+            self.folderClicked = function () {
+                if (self.mediaIndexViewModel.mediaFoldersPendingRequest()) {
+                    return;
+                }
+
+                self.mediaIndexViewModel.selectFolder(self.folderPath());
+                
+                var childFolders = self.childFolders();
+
+                if (self.isExpanded()) {    
+                    for (var x = 0; x < childFolders.length; x++) {
+                        childFolders[x].isVisible(false);
+                    }
+                    self.isExpanded(false);
+                } else {
+                    if (self.childFoldersFetchStatus !== 0) {
+                        for (var x = 0; x < childFolders.length; x++) {
+                            childFolders[x].isVisible(true);
+                        }
+                    } else {
+                        self.fetchChildren();
+                    }
+                    
+                    self.isExpanded(true);
+                }
+            };
+        }
+
+        $.map(settings.childFolders, function (childFolder, index) {
+            viewModel.mediaFolders.push(new mediaFolderViewModel(childFolder));
+        });
+
+        viewModel.fetchDisplayedFolderStructure(settings.folderPath);
+
+        enhanceViewModel(viewModel);
+        
         ko.applyBindings(viewModel);
 
         if (settings.hasFolderPath) {
@@ -352,8 +490,12 @@
 
                         viewModel.clearSelection();
                     } else {
-                        console.log('failed to move media items');
+                        alert(errorMessage);
+                        console.log('failed to move media items: ' + result.toString());
                     }
+                }).fail(function (result) {
+                    alert(errorMessage);
+                    console.log('failed to move media items: ' + result.toString());
                 });
             }
         });

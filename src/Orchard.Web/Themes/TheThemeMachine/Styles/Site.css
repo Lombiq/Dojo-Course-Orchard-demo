@@ -243,10 +243,10 @@ input.text, input.textMedium, input.text-box {
     line-height:1.2em;
 }
 /*Are we using the two classes below?*/
-input.text-small {
+input.text-small, input.text.small {
     width:4em;
 }
-input.textMedium {
+input.textMedium, input.text.medium {
     width:26em;
 }
 select {
@@ -638,4 +638,31 @@ button:focus, .button:focus {
     background: #ebebeb;
     background: -webkit-gradient(linear, left top, left bottom, from(#e1e1e1), to(#ebebeb));
     background:-moz-linear-gradient(top , #e1e1e1, #ebebeb);
+}
+
+/* Tag Cloud
+***************************************************************/
+.tag-cloud li {
+    list-style: none;
+    display: inline;
+}
+
+.tag-cloud-tag-1 {
+    font-size: 1em;
+}
+
+.tag-cloud-tag-2 {
+    font-size: 1.1em;
+}
+
+.tag-cloud-tag-3 {
+    font-size: 1.2em;
+}
+
+.tag-cloud-tag-4 {
+    font-size: 1.4em;
+}
+
+.tag-cloud-tag-5 {
+    font-size: 1.5em;
 }
