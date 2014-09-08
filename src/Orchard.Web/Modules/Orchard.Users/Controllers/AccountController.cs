@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions; 
 using System.Diagnostics.CodeAnalysis;
-using Orchard.Core.Settings.Models;
 using Orchard.Localization;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -75,6 +74,7 @@ namespace Orchard.Users.Controllers {
 
         [HttpPost]
         [AlwaysAccessible]
+        [ValidateInput(false)]
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings",
             Justification = "Needs to take same parameter type as Controller.Redirect()")]
         public ActionResult LogOn(string userNameOrEmail, string password, string returnUrl, bool rememberMe = false) {
@@ -120,7 +120,8 @@ namespace Orchard.Users.Controllers {
 
         [HttpPost]
         [AlwaysAccessible]
-        public ActionResult Register(string userName, string email, string password, string confirmPassword) {
+        [ValidateInput(false)]
+        public ActionResult Register(string userName, string email, string password, string confirmPassword, string returnUrl = null) {
             // ensure users can register
             var registrationSettings = _orchardServices.WorkContext.CurrentSite.As<RegistrationSettingsPart>();
             if ( !registrationSettings.UsersCanRegister ) {
@@ -136,7 +137,7 @@ namespace Orchard.Users.Controllers {
 
                 if (user != null) {
                     if ( user.As<UserPart>().EmailStatus == UserStatus.Pending ) {
-                        var siteUrl = _orchardServices.WorkContext.CurrentSite.As<SiteSettings2Part>().BaseUrl;
+                        var siteUrl = _orchardServices.WorkContext.CurrentSite.BaseUrl;
                         if(String.IsNullOrWhiteSpace(siteUrl)) {
                             siteUrl = HttpContext.Request.ToRootUrlString();
                         }
@@ -152,7 +153,7 @@ namespace Orchard.Users.Controllers {
                     }
 
                     _authenticationService.SignIn(user, false /* createPersistentCookie */);
-                    return Redirect("~/");
+                    return this.RedirectLocal(returnUrl);
                 }
                 
                 ModelState.AddModelError("_FORM", T(ErrorCodeToString(/*createStatus*/MembershipCreateStatus.ProviderError)));
@@ -188,7 +189,7 @@ namespace Orchard.Users.Controllers {
                 return View();
             }
 
-            var siteUrl = _orchardServices.WorkContext.CurrentSite.As<SiteSettings2Part>().BaseUrl;
+            var siteUrl = _orchardServices.WorkContext.CurrentSite.BaseUrl;
             if (String.IsNullOrWhiteSpace(siteUrl)) {
                 siteUrl = HttpContext.Request.ToRootUrlString();
             }
@@ -196,7 +197,7 @@ namespace Orchard.Users.Controllers {
             _userService.SendLostPasswordEmail(username, nonce => Url.MakeAbsolute(Url.Action("LostPassword", "Account", new { Area = "Orchard.Users", nonce = nonce }), siteUrl));
 
             _orchardServices.Notifier.Information(T("Check your e-mail for the confirmation link."));
-
+            
             return RedirectToAction("LogOn");
         }
 
@@ -249,6 +250,7 @@ namespace Orchard.Users.Controllers {
         }
 
         [HttpPost]
+        [ValidateInput(false)]
         public ActionResult LostPassword(string nonce, string newPassword, string confirmPassword) {
             IUser user;
             if ( (user = _userService.ValidateLostPassword(nonce)) == null ) {
@@ -355,9 +357,19 @@ namespace Orchard.Users.Controllers {
                 ModelState.AddModelError("username", T("You must specify a username."));
                 validate = false;
             }
+            else {
+                if (userName.Length >= 255) {
+                    ModelState.AddModelError("username", T("The username you provided is too long."));
+                    validate = false;
+                }
+            }
 
             if (String.IsNullOrEmpty(email)) {
                 ModelState.AddModelError("email", T("You must specify an email address."));
+                validate = false;
+            }
+            else if (email.Length >= 255) {
+                ModelState.AddModelError("email", T("The email address you provided is too long."));
                 validate = false;
             }
             else if (!Regex.IsMatch(email, UserPart.EmailPattern, RegexOptions.IgnoreCase)) {

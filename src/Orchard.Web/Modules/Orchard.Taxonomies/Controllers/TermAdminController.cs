@@ -149,12 +149,12 @@ namespace Orchard.Taxonomies.Controllers {
             var taxonomy = _taxonomyService.GetTaxonomy(taxonomyId);
             var parentTerm = _taxonomyService.GetTerm(parentTermId);
             var term = _taxonomyService.NewTerm(taxonomy);
-            
+
             // assign a container to show the full route while editing
             term.Container = parentTerm == null ? taxonomy : (IContent)parentTerm;
 
             var model = Services.ContentManager.BuildEditor(term);
-            return View((object)model);
+            return View(model);
         }
 
         [HttpPost, ActionName("Create")]
@@ -167,15 +167,18 @@ namespace Orchard.Taxonomies.Controllers {
             var term = _taxonomyService.NewTerm(taxonomy);
             term.Container = parentTerm == null ? taxonomy.ContentItem : parentTerm.ContentItem;
 
+            // Create content item before updating so attached fields save correctly
+            Services.ContentManager.Create(term, VersionOptions.Draft);
+
             var model = Services.ContentManager.UpdateEditor(term, this);
 
             if (!ModelState.IsValid) {
                 Services.TransactionManager.Cancel();
-                return View((object)model);
+                return View(model);
             }
 
             _taxonomyService.ProcessPath(term);
-            Services.ContentManager.Create(term, VersionOptions.Published);
+            Services.ContentManager.Publish(term.ContentItem);
             Services.Notifier.Information(T("The {0} term has been created.", term.Name));
 
             return RedirectToAction("Index", "TermAdmin", new { taxonomyId });
@@ -191,7 +194,7 @@ namespace Orchard.Taxonomies.Controllers {
                 return HttpNotFound();
 
             var model = Services.ContentManager.BuildEditor(term);
-            return View((object)model);
+            return View(model);
         }
 
         [HttpPost, ActionName("Edit")]
@@ -209,7 +212,7 @@ namespace Orchard.Taxonomies.Controllers {
 
             if (!ModelState.IsValid) {
                 Services.TransactionManager.Cancel();
-                return View((object)model);
+                return View(model);
             }
 
             Services.ContentManager.Publish(contentItem);
